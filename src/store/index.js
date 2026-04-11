@@ -1,9 +1,73 @@
 import { createStore } from "vuex";
+import createPersistedState from "vuex-persistedstate";
+import axios from "axios";
 
 export default createStore({
-  state: {},
-  getters: {},
-  mutations: {},
-  actions: {},
-  modules: {},
+  plugins: [createPersistedState()],
+  state: {
+    user: null,
+    token: null,
+    isAuthenticated: false,
+  },
+  mutations: {
+    SET_USER(state, user) {
+      state.user = user;
+    },
+    SET_TOKEN(state, token) {
+      state.token = token;
+      state.isAuthenticated = !!token;
+      if (token) {
+        localStorage.setItem("token", token);
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      } else {
+        localStorage.removeItem("token");
+        delete axios.defaults.headers.common["Authorization"];
+      }
+    },
+    LOGOUT(state) {
+      state.user = null;
+      state.token = null;
+      state.isAuthenticated = false;
+      localStorage.removeItem("token");
+      delete axios.defaults.headers.common["Authorization"];
+    },
+  },
+  actions: {
+    async login({ commit }, credentials) {
+      try {
+        const response = await axios.post(
+          `${process.env.VUE_APP_API_URL}/login`,
+          credentials,
+        );
+        const { access_token, user } = response.data;
+        commit("SET_TOKEN", access_token);
+        commit("SET_USER", user);
+        return { success: true };
+      } catch (error) {
+        return { success: false, error: error.response?.data || error.message };
+      }
+    },
+    async register({ commit }, userData) {
+      try {
+        const response = await axios.post(
+          `${process.env.VUE_APP_API_URL}/register`,
+          userData,
+        );
+        const { access_token, user } = response.data;
+        commit("SET_TOKEN", access_token);
+        commit("SET_USER", user);
+        return { success: true };
+      } catch (error) {
+        return { success: false, error: error.response?.data || error.message };
+      }
+    },
+    logout({ commit }) {
+      commit("LOGOUT");
+    },
+  },
+  getters: {
+    isAuthenticated: (state) => state.isAuthenticated,
+    currentUser: (state) => state.user,
+    authToken: (state) => state.token,
+  },
 });

@@ -5,13 +5,19 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "backend": "json-server-auth db.json --port 3000",
+    "dev": "concurrently \"npm run serve\" \"npm run backend\""
   },
   "dependencies": {
+    "axios": "^1.15.0",
     "core-js": "^3.8.3",
+    "json-server-auth": "^2.1.0",
+    "sweetalert2": "^11.26.24",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",
-    "vuex": "^4.0.0"
+    "vuex": "^4.0.0",
+    "vuex-persistedstate": "^4.1.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
@@ -21,10 +27,28 @@
     "@vue/cli-plugin-router": "~5.0.0",
     "@vue/cli-plugin-vuex": "~5.0.0",
     "@vue/cli-service": "~5.0.0",
+    "autoprefixer": "^10.4.27",
+    "concurrently": "^9.2.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-vue": "^8.0.3",
-    "prettier": "^2.4.1"
-  }
+    "postcss": "^8.5.9",
+    "prettier": "^2.4.1",
+    "tailwindcss": "^4.2.2"
+  },
+  "description": "``` npm install ```",
+  "main": ".eslintrc.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zetanocturno/FE-Imgenieros-futuro.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/zetanocturno/FE-Imgenieros-futuro/issues"
+  },
+  "homepage": "https://github.com/zetanocturno/FE-Imgenieros-futuro#readme"
 }
