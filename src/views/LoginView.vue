@@ -5,16 +5,20 @@
             <form @submit.prevent="handleLogin">
                 <div class="form-group">
                     <label>Email:</label>
-                    <input type="email" v-model="credentials.email" required />
+                    <input type="email" v-model="credentials.email" required>
                 </div>
                 <div class="form-group">
                     <label>Contraseña:</label>
-                    <input type="password" v-model="credentials.password" required />
+                    <input type="password" v-model="credentials.password" required>
                 </div>
-                <button type="submit" class="btn-primary">Ingresar</button>
+                <div v-if="errorMessage" class="error-message">
+                    {{ errorMessage }}
+                </div>
+                <button type="submit" :disabled="loading" class="btn-primary">
+                    {{ loading ? 'Ingresando...' : 'Ingresar' }}
+                </button>
                 <p class="auth-link">
-                    ¿No tienes cuenta?
-                    <router-link to="/register">Regístrate</router-link>
+                    ¿No tienes cuenta? <router-link to="/register">Regístrate</router-link>
                 </p>
             </form>
         </div>
@@ -22,37 +26,52 @@
 </template>
 
 <script>
-import { ref } from "vue";
-import { useStore } from "vuex";
-import { useRouter } from "vue-router";
-import Swal from "sweetalert2";
+import { ref } from 'vue'
+import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 
 export default {
-    name: "LoginView",
+    name: 'LoginView',
     setup() {
-        const store = useStore();
-        const router = useRouter();
+        const store = useStore()
+        const router = useRouter()
+        const loading = ref(false)
+        const errorMessage = ref('')
         const credentials = ref({
-            email: "",
-            password: "",
-        });
+            email: '',
+            password: ''
+        })
 
         const handleLogin = async () => {
-            const result = await store.dispatch("login", credentials.value);
-            if (result.success) {
-                Swal.fire("Éxito", "Inicio de sesión exitoso", "success");
-                router.push("/dashboard");
-            } else {
-                Swal.fire("Error", "Credenciales incorrectas", "error");
+            loading.value = true
+            errorMessage.value = ''
+
+            try {
+                const result = await store.dispatch('login', credentials.value)
+
+                if (result.success) {
+                    console.log('Login exitoso, redirigiendo...')
+                    // Forzar redirección
+                    router.push('/dashboard')
+                } else {
+                    errorMessage.value = result.error || 'Credenciales incorrectas'
+                }
+            } catch (error) {
+                console.error('Error en login:', error)
+                errorMessage.value = 'Error de conexión. ¿JSON Server está corriendo?'
+            } finally {
+                loading.value = false
             }
-        };
+        }
 
         return {
             credentials,
-            handleLogin,
-        };
-    },
-};
+            loading,
+            errorMessage,
+            handleLogin
+        }
+    }
+}
 </script>
 
 <style scoped>
@@ -96,6 +115,16 @@ export default {
     font-size: 1rem;
 }
 
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 0.75rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
 .btn-primary {
     width: 100%;
     padding: 0.75rem;
@@ -108,8 +137,13 @@ export default {
     transition: background 0.3s;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
     background: #5a67d8;
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .auth-link {

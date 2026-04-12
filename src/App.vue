@@ -4,13 +4,11 @@
       <div class="nav-container">
         <router-link to="/" class="nav-brand">Ingenieros Futuro</router-link>
         <div class="nav-menu">
-          <router-link to="/dashboard">Dashboard</router-link>
+          <router-link to="/dashboard">Incio</router-link>
           <router-link to="/estudiantes">Estudiantes</router-link>
           <router-link to="/patrocinadores">Patrocinadores</router-link>
           <router-link to="/patrocinios">Patrocinios</router-link>
-          <button @click="handleLogout" class="btn-logout">
-            Cerrar Sesión
-          </button>
+          <button @click="handleLogout" class="btn-logout">Cerrar Sesión</button>
         </div>
       </div>
     </nav>
@@ -22,29 +20,29 @@
 </template>
 
 <script>
-import { computed } from "vue";
-import { useStore } from "vuex";
-import { useRouter } from "vue-router";
+import { computed } from 'vue'
+import { useStore } from 'vuex'
+import { useRouter } from 'vue-router'
 
 export default {
-  name: "App",
+  name: 'App',
   setup() {
-    const store = useStore();
-    const router = useRouter();
+    const store = useStore()
+    const router = useRouter()
 
-    const isAuthenticated = computed(() => store.getters.isAuthenticated);
+    const isAuthenticated = computed(() => store.getters.isAuthenticated)
 
     const handleLogout = () => {
-      store.dispatch("logout");
-      router.push("/login");
-    };
+      store.dispatch('logout')
+      router.push('/login')
+    }
 
     return {
       isAuthenticated,
-      handleLogout,
-    };
-  },
-};
+      handleLogout
+    }
+  }
+}
 </script>
 
 <style>
@@ -55,7 +53,7 @@ export default {
 }
 
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
 }

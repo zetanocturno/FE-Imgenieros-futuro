@@ -1,20 +1,20 @@
 <template>
     <div class="dashboard">
-        <h1>Dashboard</h1>
+        <h1>Inicio</h1>
         <div class="stats-grid">
             <div class="stat-card">
                 <h3>Estudiantes</h3>
-                <p class="stat-number">{{ estadisticas.total_estudiantes || 0 }}</p>
+                <p class="stat-number">{{ estudiantes.length }}</p>
                 <router-link to="/estudiantes">Ver todos →</router-link>
             </div>
             <div class="stat-card">
                 <h3>Patrocinadores</h3>
-                <p class="stat-number">{{ estadisticas.total_patrocinadores || 0 }}</p>
+                <p class="stat-number">{{ patrocinadores.length }}</p>
                 <router-link to="/patrocinadores">Ver todos →</router-link>
             </div>
             <div class="stat-card">
                 <h3>Patrocinios Activos</h3>
-                <p class="stat-number">{{ estadisticas.patrocinios_activos || 0 }}</p>
+                <p class="stat-number">{{ patrociniosActivos }}</p>
                 <router-link to="/patrocinios">Ver todos →</router-link>
             </div>
         </div>
@@ -22,31 +22,45 @@
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import axios from "@/config/axios";
 
 export default {
     name: "DashboardView",
     setup() {
-        const estadisticas = ref({});
+        const estudiantes = ref([]);
+        const patrocinadores = ref([]);
+        const patrocinios = ref([]);
 
-        const cargarEstadisticas = async () => {
+        const patrociniosActivos = computed(() => {
+            return patrocinios.value.filter((p) => p.estado === "ACTIVO").length;
+        });
+
+        const cargarDatos = async () => {
             try {
-                const response = await axios.get(
-                    "http://localhost:8000/api/estadisticas/"
-                );
-                estadisticas.value = response.data;
+                const [estudiantesRes, patrocinadoresRes, patrociniosRes] =
+                    await Promise.all([
+                        axios.get("/estudiantes"),
+                        axios.get("/patrocinadores"),
+                        axios.get("/patrocinios"),
+                    ]);
+                estudiantes.value = estudiantesRes.data;
+                patrocinadores.value = patrocinadoresRes.data;
+                patrocinios.value = patrociniosRes.data;
             } catch (error) {
-                console.error("Error cargando estadísticas:", error);
+                console.error("Error cargando datos:", error);
             }
         };
 
         onMounted(() => {
-            cargarEstadisticas();
+            cargarDatos();
         });
 
         return {
-            estadisticas,
+            estudiantes,
+            patrocinadores,
+            patrocinios,
+            patrociniosActivos,
         };
     },
 };
