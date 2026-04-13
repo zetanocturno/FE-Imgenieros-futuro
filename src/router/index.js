@@ -53,10 +53,16 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
-    path: "/patrocinios/:id", // ← Nueva ruta de detalle
+    path: "/patrocinios/:id",
     name: "patrocinio-detalle",
     component: () => import("../views/PatrocinioDetalleView.vue"),
     meta: { requiresAuth: true },
+  },
+  {
+    path: "/about",
+    name: "about",
+    component: () => import("../views/AboutView.vue"),
+    meta: { requiresAuth: true }, // Si requiere autenticación
   },
 ];
 

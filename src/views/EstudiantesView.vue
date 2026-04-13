@@ -3,13 +3,13 @@
         <div class="header">
             <h1>Estudiantes</h1>
             <button @click="abrirModalCrear" class="btn-agregar">
-                + Agregar Estudiante
+                + Agregar
             </button>
         </div>
 
         <!-- Buscador y filtros -->
         <div class="filtros">
-            <input type="text" v-model="searchTerm" placeholder="Buscar por nombre o email..." class="buscador" />
+            <input type="text" v-model="searchTerm" placeholder="Buscar..." class="buscador" />
             <select v-model="filtroPais" class="filtro">
                 <option value="">Todos los países</option>
                 <option v-for="pais in paises" :key="pais" :value="pais">
@@ -18,8 +18,8 @@
             </select>
         </div>
 
-        <!-- Tabla de estudiantes -->
-        <div class="table-container">
+        <!-- Vista Desktop: Tabla -->
+        <div class="table-container desktop-view">
             <table>
                 <thead>
                     <tr>
@@ -27,27 +27,21 @@
                         <th>Email</th>
                         <th>WhatsApp</th>
                         <th>País</th>
-                        <th>Fecha Nacimiento</th>
+                        <th>Fecha Nac.</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr v-for="estudiante in estudiantesFiltrados" :key="estudiante.id">
-                        <td>{{ estudiante.nombre }}</td>
-                        <td>{{ estudiante.correo }}</td>
-                        <td>{{ estudiante.whatsapp }}</td>
-                        <td>{{ estudiante.pais }}</td>
-                        <td>{{ estudiante.fecha_nacimiento }}</td>
+                        <td data-label="Nombre">{{ estudiante.nombre }}</td>
+                        <td data-label="Email">{{ estudiante.correo }}</td>
+                        <td data-label="WhatsApp">{{ estudiante.whatsapp }}</td>
+                        <td data-label="País">{{ estudiante.pais }}</td>
+                        <td data-label="Fecha Nac.">{{ estudiante.fecha_nacimiento }}</td>
                         <td class="acciones">
-                            <button @click="verDetalle(estudiante.id)" class="btn-ver">
-                                👁️
-                            </button>
-                            <button @click="editarEstudiante(estudiante)" class="btn-editar">
-                                ✏️
-                            </button>
-                            <button @click="eliminarEstudiante(estudiante.id)" class="btn-eliminar">
-                                🗑️
-                            </button>
+                            <button @click="verDetalle(estudiante.id)" class="btn-ver">👁️</button>
+                            <button @click="editarEstudiante(estudiante)" class="btn-editar">✏️</button>
+                            <button @click="eliminarEstudiante(estudiante.id)" class="btn-eliminar">🗑️</button>
                         </td>
                     </tr>
                     <tr v-if="estudiantesFiltrados.length === 0">
@@ -57,7 +51,38 @@
             </table>
         </div>
 
-        <!-- Modal reutilizable para crear/editar estudiante -->
+        <!-- Vista Móvil: Tarjetas -->
+        <div class="mobile-view">
+            <div v-for="estudiante in estudiantesFiltrados" :key="estudiante.id" class="card">
+                <div class="card-header">
+                    <strong>{{ estudiante.nombre }}</strong>
+                    <div class="card-actions">
+                        <button @click="verDetalle(estudiante.id)" class="btn-ver">👁️</button>
+                        <button @click="editarEstudiante(estudiante)" class="btn-editar">✏️</button>
+                        <button @click="eliminarEstudiante(estudiante.id)" class="btn-eliminar">🗑️</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="card-field">
+                        <span>Email:</span> {{ estudiante.correo }}
+                    </div>
+                    <div class="card-field">
+                        <span>WhatsApp:</span> {{ estudiante.whatsapp }}
+                    </div>
+                    <div class="card-field">
+                        <span>País:</span> {{ estudiante.pais }}
+                    </div>
+                    <div class="card-field">
+                        <span>Fecha Nac.:</span> {{ estudiante.fecha_nacimiento }}
+                    </div>
+                </div>
+            </div>
+            <div v-if="estudiantesFiltrados.length === 0" class="no-data-mobile">
+                No hay estudiantes registrados
+            </div>
+        </div>
+
+        <!-- Modal reutilizable -->
         <Modal :visible="mostrarModal" :title="modoEdicion ? 'Editar Estudiante' : 'Nuevo Estudiante'"
             @close="cerrarModal" @save="guardarEstudiante">
             <template #form-fields>
@@ -242,16 +267,24 @@ export default {
 <style scoped>
 .estudiantes-container {
     background: white;
-    border-radius: 10px;
-    padding: 2rem;
+    border-radius: 12px;
+    padding: 1.5rem;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Header */
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.header h1 {
+    font-size: 1.5rem;
+    margin: 0;
 }
 
 .btn-agregar {
@@ -259,15 +292,17 @@ export default {
     color: white;
     border: none;
     padding: 0.5rem 1rem;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
     transition: background 0.3s;
+    font-size: 0.875rem;
 }
 
 .btn-agregar:hover {
     background: #218838;
 }
 
+/* Filtros */
 .filtros {
     display: flex;
     gap: 1rem;
@@ -276,10 +311,10 @@ export default {
 
 .buscador,
 .filtro {
-    padding: 0.5rem;
+    padding: 0.625rem;
     border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
 }
 
 .buscador {
@@ -290,27 +325,74 @@ export default {
     flex: 1;
 }
 
-.table-container {
+/* Vista Desktop - Tabla */
+.desktop-view {
     overflow-x: auto;
 }
 
-table {
+.desktop-view table {
     width: 100%;
     border-collapse: collapse;
 }
 
-th,
-td {
+.desktop-view th,
+.desktop-view td {
     padding: 0.75rem;
     text-align: left;
     border-bottom: 1px solid #ddd;
 }
 
-th {
+.desktop-view th {
     background: #f8f9fa;
     font-weight: 600;
 }
 
+/* Vista Móvil - Tarjetas */
+.mobile-view {
+    display: none;
+}
+
+.card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.card-header strong {
+    font-size: 1rem;
+    color: #333;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.card-field {
+    font-size: 0.8rem;
+    padding: 0.25rem 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.card-field span {
+    font-weight: 600;
+    width: 100px;
+    color: #666;
+}
+
+/* Botones de acción */
 .acciones {
     display: flex;
     gap: 0.5rem;
@@ -321,9 +403,9 @@ th {
 .btn-eliminar {
     padding: 0.25rem 0.5rem;
     border: none;
-    border-radius: 3px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 0.875rem;
 }
 
 .btn-ver {
@@ -341,16 +423,104 @@ th {
     color: white;
 }
 
+/* Mensaje sin datos */
 .no-data {
     text-align: center;
     color: #999;
     padding: 2rem;
 }
 
-/* Estilos para el formulario dentro del modal */
+.no-data-mobile {
+    text-align: center;
+    color: #999;
+    padding: 2rem;
+}
+
+/* Formulario */
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
+}
+
+/* ============================================ */
+/* RESPONSIVE: MÓVIL (menos de 768px) */
+/* ============================================ */
+@media (max-width: 768px) {
+    .estudiantes-container {
+        padding: 0.75rem;
+    }
+
+    .header h1 {
+        font-size: 1.125rem;
+    }
+
+    /* Filtros en columna */
+    .filtros {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .buscador,
+    .filtro {
+        width: 100%;
+    }
+
+    /* Ocultar tabla, mostrar tarjetas */
+    .desktop-view {
+        display: none;
+    }
+
+    .mobile-view {
+        display: block;
+    }
+
+    /* Formulario en columna */
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+}
+
+/* ============================================ */
+/* RESPONSIVE: TABLET (768px a 1024px) */
+/* ============================================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .estudiantes-container {
+        padding: 1rem;
+    }
+
+    .header h1 {
+        font-size: 1.25rem;
+    }
+}
+
+/* ============================================ */
+/* MEJORAS PARA TACTIL (móviles y tablets) */
+/* ============================================ */
+@media (max-width: 1024px) {
+
+    /* Botones más grandes para dedos */
+    .btn-agregar,
+    .btn-ver,
+    .btn-editar,
+    .btn-eliminar {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    .btn-ver,
+    .btn-editar,
+    .btn-eliminar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Evita zoom en iOS al enfocar inputs */
+    input,
+    select {
+        font-size: 16px !important;
+    }
 }
 </style>

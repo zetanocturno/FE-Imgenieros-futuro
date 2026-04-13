@@ -35,12 +35,13 @@
                 </div>
                 <div class="campo">
                     <label>Descripción:</label>
-                    <p>{{ patrocinador.descripcion_patrocinio }}</p>
+                    <p class="descripcion-texto">{{ patrocinador.descripcion_patrocinio }}</p>
                 </div>
             </div>
 
             <div v-else class="cargando">
-                Cargando datos...
+                <div class="spinner"></div>
+                <p>Cargando datos...</p>
             </div>
         </div>
     </div>
@@ -50,6 +51,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from '@/config/axios'
+import Swal from 'sweetalert2'
 
 export default {
     name: 'PatrocinadorDetalleView',
@@ -64,7 +66,12 @@ export default {
                 patrocinador.value = response.data
             } catch (error) {
                 console.error('Error cargando patrocinador:', error)
-                alert('Error al cargar los datos del patrocinador')
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al cargar los datos del patrocinador',
+                    confirmButtonColor: '#d33'
+                })
             }
         }
 
@@ -85,86 +92,206 @@ export default {
     justify-content: center;
     align-items: center;
     min-height: calc(100vh - 200px);
+    padding: 1rem;
 }
 
 .detalle-card {
     background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     width: 100%;
-    max-width: 700px;
+    max-width: 800px;
+    overflow: hidden;
 }
 
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f0f0f0;
+    padding: 1.5rem 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
 }
 
 .header h1 {
     font-size: 1.5rem;
-    color: #333;
+    margin: 0;
+    font-weight: 600;
 }
 
 .btn-volver {
-    background: #6c757d;
+    background: rgba(255, 255, 255, 0.2);
     color: white;
     padding: 0.5rem 1rem;
-    border-radius: 5px;
+    border-radius: 8px;
     text-decoration: none;
-    transition: background 0.3s;
+    font-size: 0.875rem;
+    transition: all 0.3s;
 }
 
 .btn-volver:hover {
-    background: #5a6268;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-2px);
 }
 
 .detalle-info {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    padding: 2rem;
 }
 
 .campo {
     display: flex;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid #eee;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e9ecef;
 }
 
 .campo label {
-    font-weight: bold;
-    width: 150px;
-    color: #555;
+    font-weight: 600;
+    width: 140px;
+    color: #475569;
+    font-size: 0.875rem;
 }
 
 .campo p {
     flex: 1;
     margin: 0;
-    color: #333;
+    color: #1e293b;
+    font-size: 0.875rem;
 }
 
+.descripcion-texto {
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+/* Estados */
 .estado-activo {
-    color: #28a745;
-    font-weight: bold;
+    color: #10b981;
+    font-weight: 600;
 }
 
 .estado-inactivo {
-    color: #dc3545;
-    font-weight: bold;
+    color: #ef4444;
+    font-weight: 600;
 }
 
 .estado-concluido {
-    color: #6c757d;
-    font-weight: bold;
+    color: #6b7280;
+    font-weight: 600;
 }
 
+/* Estado de carga */
 .cargando {
     text-align: center;
-    color: #999;
-    padding: 2rem;
+    padding: 3rem;
+    color: #94a3b8;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 1rem;
+    border: 3px solid #e2e8f0;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================ */
+/* RESPONSIVE: MÓVIL (menos de 768px) */
+/* ============================================ */
+@media (max-width: 768px) {
+    .detalle-container {
+        padding: 0.75rem;
+        min-height: calc(100vh - 150px);
+    }
+
+    .detalle-card {
+        border-radius: 12px;
+    }
+
+    .header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+        padding: 1rem 1.25rem;
+    }
+
+    .header h1 {
+        font-size: 1.125rem;
+    }
+
+    .btn-volver {
+        width: 100%;
+        text-align: center;
+        padding: 0.625rem;
+    }
+
+    .detalle-info {
+        padding: 1rem;
+    }
+
+    .campo {
+        flex-direction: column;
+        padding: 0.625rem 0;
+    }
+
+    .campo label {
+        width: 100%;
+        margin-bottom: 0.25rem;
+        font-size: 0.8rem;
+    }
+
+    .campo p {
+        font-size: 0.875rem;
+        word-break: break-word;
+    }
+}
+
+/* ============================================ */
+/* RESPONSIVE: TABLET (768px a 1024px) */
+/* ============================================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .detalle-card {
+        max-width: 90%;
+    }
+
+    .header h1 {
+        font-size: 1.25rem;
+    }
+
+    .detalle-info {
+        padding: 1.5rem;
+    }
+}
+
+/* ============================================ */
+/* PANTALLAS MUY PEQUEÑAS (menos de 480px) */
+/* ============================================ */
+@media (max-width: 480px) {
+    .detalle-container {
+        padding: 0.5rem;
+    }
+
+    .detalle-info {
+        padding: 0.75rem;
+    }
+
+    .campo {
+        padding: 0.5rem 0;
+    }
+
+    .campo label {
+        font-size: 0.75rem;
+    }
+
+    .campo p {
+        font-size: 0.8rem;
+    }
 }
 </style>

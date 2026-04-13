@@ -34,7 +34,7 @@
 
                 <!-- Información adicional del patrocinador -->
                 <div v-if="patrocinadorInfo" class="seccion-adicional">
-                    <h3>Información del Patrocinador</h3>
+                    <h3>📋 Información del Patrocinador</h3>
                     <div class="subcampos">
                         <div class="subcampo">
                             <label>Empresa:</label>
@@ -52,12 +52,16 @@
                             <label>WhatsApp:</label>
                             <span>{{ patrocinadorInfo.whatsapp }}</span>
                         </div>
+                        <div class="subcampo">
+                            <label>País:</label>
+                            <span>{{ patrocinadorInfo.pais }}</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Información adicional del estudiante -->
                 <div v-if="estudianteInfo" class="seccion-adicional">
-                    <h3>Información del Estudiante</h3>
+                    <h3>🎓 Información del Estudiante</h3>
                     <div class="subcampos">
                         <div class="subcampo">
                             <label>Nombre:</label>
@@ -189,7 +193,7 @@ export default {
     border-radius: 16px;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     width: 100%;
-    max-width: 800px;
+    max-width: 850px;
     overflow: hidden;
 }
 
@@ -252,6 +256,7 @@ export default {
     white-space: pre-wrap;
 }
 
+/* Estados */
 .estado-activo {
     color: #10b981;
     font-weight: 600;
@@ -333,30 +338,132 @@ export default {
     }
 }
 
-/* Responsive */
-@media (max-width: 640px) {
+/* ============================================ */
+/* RESPONSIVE: MÓVIL (menos de 768px) */
+/* ============================================ */
+@media (max-width: 768px) {
+    .detalle-container {
+        padding: 0.75rem;
+        min-height: calc(100vh - 150px);
+    }
+
+    .detalle-card {
+        border-radius: 12px;
+    }
+
     .header {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
+        padding: 1rem 1.25rem;
+    }
+
+    .header h1 {
+        font-size: 1.125rem;
+    }
+
+    .btn-volver {
+        width: 100%;
+        text-align: center;
+        padding: 0.625rem;
+    }
+
+    .detalle-info {
+        padding: 1rem;
     }
 
     .campo {
         flex-direction: column;
+        padding: 0.625rem 0;
     }
 
     .campo label {
         width: 100%;
         margin-bottom: 0.25rem;
+        font-size: 0.8rem;
+    }
+
+    .campo p {
+        font-size: 0.875rem;
+        word-break: break-word;
+    }
+
+    .seccion-adicional {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+    }
+
+    .seccion-adicional h3 {
+        font-size: 0.875rem;
+    }
+
+    .subcampos {
+        padding: 0.75rem;
     }
 
     .subcampo {
         flex-direction: column;
+        padding: 0.5rem 0;
     }
 
     .subcampo label {
         width: 100%;
         margin-bottom: 0.25rem;
+        font-size: 0.75rem;
+    }
+
+    .subcampo span {
+        font-size: 0.8rem;
+    }
+}
+
+/* ============================================ */
+/* RESPONSIVE: TABLET (768px a 1024px) */
+/* ============================================ */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .detalle-card {
+        max-width: 90%;
+    }
+
+    .header h1 {
+        font-size: 1.25rem;
+    }
+
+    .detalle-info {
+        padding: 1.5rem;
+    }
+}
+
+/* ============================================ */
+/* PANTALLAS MUY PEQUEÑAS (menos de 480px) */
+/* ============================================ */
+@media (max-width: 480px) {
+    .detalle-container {
+        padding: 0.5rem;
+    }
+
+    .detalle-info {
+        padding: 0.75rem;
+    }
+
+    .campo {
+        padding: 0.5rem 0;
+    }
+
+    .campo label {
+        font-size: 0.75rem;
+    }
+
+    .campo p {
+        font-size: 0.8rem;
+    }
+
+    .seccion-adicional h3 {
+        font-size: 0.8rem;
+    }
+
+    .subcampo span {
+        font-size: 0.75rem;
     }
 }
 </style>
