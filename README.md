@@ -30,6 +30,8 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 
 ## Siguientes etapas de desarrollo
 
-1.- Poder desplegar los titulos y textos en español e ingles
+1.- Poder desplegar los títulos y textos en español e inglés
+
 2.- Añadir links para material didáctico
+
 3.- Añadir páginas de presentaciones

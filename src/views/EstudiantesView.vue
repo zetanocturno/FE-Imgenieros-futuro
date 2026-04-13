@@ -57,23 +57,23 @@
             </table>
         </div>
 
-        <!-- Modal para crear/editar -->
-        <div v-if="mostrarModal" class="modal" @click.self="cerrarModal">
-            <div class="modal-content">
-                <h2>{{ modoEdicion ? "Editar Estudiante" : "Nuevo Estudiante" }}</h2>
-                <form @submit.prevent="guardarEstudiante">
-                    <div class="form-group">
-                        <label>Nombre:</label>
-                        <input type="text" v-model="estudianteForm.nombre" required />
-                    </div>
-                    <div class="form-group">
-                        <label>Email:</label>
-                        <input type="email" v-model="estudianteForm.correo" required />
-                    </div>
-                    <div class="form-group">
-                        <label>WhatsApp:</label>
-                        <input type="text" v-model="estudianteForm.whatsapp" placeholder="+1234567890" required />
-                    </div>
+        <!-- Modal reutilizable para crear/editar estudiante -->
+        <Modal :visible="mostrarModal" :title="modoEdicion ? 'Editar Estudiante' : 'Nuevo Estudiante'"
+            @close="cerrarModal" @save="guardarEstudiante">
+            <template #form-fields>
+                <div class="form-group">
+                    <label>Nombre:</label>
+                    <input type="text" v-model="estudianteForm.nombre" required />
+                </div>
+                <div class="form-group">
+                    <label>Email:</label>
+                    <input type="email" v-model="estudianteForm.correo" required />
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp:</label>
+                    <input type="text" v-model="estudianteForm.whatsapp" placeholder="+1234567890" required />
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>País:</label>
                         <input type="text" v-model="estudianteForm.pais" required />
@@ -82,15 +82,9 @@
                         <label>Fecha Nacimiento:</label>
                         <input type="date" v-model="estudianteForm.fecha_nacimiento" required />
                     </div>
-                    <div class="modal-actions">
-                        <button type="button" @click="cerrarModal" class="btn-cancelar">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="btn-guardar">Guardar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                </div>
+            </template>
+        </Modal>
     </div>
 </template>
 
@@ -99,9 +93,11 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "@/config/axios";
 import Swal from "sweetalert2";
+import Modal from "@/components/Modal.vue";
 
 export default {
     name: "EstudiantesView",
+    components: { Modal },
     setup() {
         const router = useRouter();
         const estudiantes = ref([]);
@@ -143,9 +139,7 @@ export default {
 
         const cargarEstudiantes = async () => {
             try {
-                const response = await axios.get(
-                    "http://localhost:8000/api/estudiantes/"
-                );
+                const response = await axios.get('/estudiantes');
                 estudiantes.value = response.data;
             } catch (error) {
                 console.error("Error cargando estudiantes:", error);
@@ -175,16 +169,10 @@ export default {
         const guardarEstudiante = async () => {
             try {
                 if (modoEdicion.value) {
-                    await axios.put(
-                        `http://localhost:8000/api/estudiantes/${estudianteForm.value.id}/`,
-                        estudianteForm.value
-                    );
+                    await axios.put(`/estudiantes/${estudianteForm.value.id}`, estudianteForm.value)
                     Swal.fire("Éxito", "Estudiante actualizado", "success");
                 } else {
-                    await axios.post(
-                        "http://localhost:8000/api/estudiantes/",
-                        estudianteForm.value
-                    );
+                    await axios.post('/estudiantes', estudianteForm.value)
                     Swal.fire("Éxito", "Estudiante creado", "success");
                 }
                 cerrarModal();
@@ -209,7 +197,7 @@ export default {
 
             if (result.isConfirmed) {
                 try {
-                    await axios.delete(`http://localhost:8000/api/estudiantes/${id}/`);
+                    await axios.delete(`/estudiantes/${id}`);
                     Swal.fire("Eliminado", "Estudiante eliminado", "success");
                     cargarEstudiantes();
                 } catch (error) {
@@ -359,51 +347,10 @@ th {
     padding: 2rem;
 }
 
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
+/* Estilos para el formulario dentro del modal */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
-    margin-top: 1.5rem;
-}
-
-.btn-cancelar {
-    background: #6c757d;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.btn-guardar {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    cursor: pointer;
 }
 </style>

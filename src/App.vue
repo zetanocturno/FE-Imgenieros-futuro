@@ -2,7 +2,7 @@
   <div id="app">
     <nav class="navbar" v-if="isAuthenticated">
       <div class="nav-container">
-        <router-link to="/" class="nav-brand">Ingenieros Futuro</router-link>
+        <router-link to="/" class="nav-brand">Ingenieros para el Futuro</router-link>
         <div class="nav-menu">
           <router-link to="/dashboard">Incio</router-link>
           <router-link to="/estudiantes">Estudiantes</router-link>

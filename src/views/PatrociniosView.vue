@@ -48,6 +48,9 @@
                         </td>
                         <td>{{ patrocinio.descripcion }}</td>
                         <td class="acciones">
+                            <button @click="verDetalle(patrocinio.id)" class="btn-ver">
+                                👁️
+                            </button>
                             <button @click="editarPatrocinio(patrocinio)" class="btn-editar">
                                 ✏️
                             </button>
@@ -63,29 +66,29 @@
             </table>
         </div>
 
-        <!-- Modal para crear/editar -->
-        <div v-if="mostrarModal" class="modal" @click.self="cerrarModal">
-            <div class="modal-content">
-                <h2>{{ modoEdicion ? "Editar Patrocinio" : "Nuevo Patrocinio" }}</h2>
-                <form @submit.prevent="guardarPatrocinio">
-                    <div class="form-group">
-                        <label>Patrocinador:</label>
-                        <select v-model="patrocinioForm.patrocinadorId" required>
-                            <option value="">Seleccione un patrocinador</option>
-                            <option v-for="p in patrocinadores" :key="p.id" :value="p.id">
-                                {{ p.nombre_empresa }}
-                            </option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Estudiante:</label>
-                        <select v-model="patrocinioForm.estudianteId" required>
-                            <option value="">Seleccione un estudiante</option>
-                            <option v-for="e in estudiantes" :key="e.id" :value="e.id">
-                                {{ e.nombre }}
-                            </option>
-                        </select>
-                    </div>
+        <!-- Modal reutilizable para crear/editar patrocinio -->
+        <Modal :visible="mostrarModal" :title="modoEdicion ? 'Editar Patrocinio' : 'Nuevo Patrocinio'"
+            @close="cerrarModal" @save="guardarPatrocinio">
+            <template #form-fields>
+                <div class="form-group">
+                    <label>Patrocinador:</label>
+                    <select v-model="patrocinioForm.patrocinadorId" required>
+                        <option value="">Seleccione un patrocinador</option>
+                        <option v-for="p in patrocinadores" :key="p.id" :value="p.id">
+                            {{ p.nombre_empresa }}
+                        </option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Estudiante:</label>
+                    <select v-model="patrocinioForm.estudianteId" required>
+                        <option value="">Seleccione un estudiante</option>
+                        <option v-for="e in estudiantes" :key="e.id" :value="e.id">
+                            {{ e.nombre }}
+                        </option>
+                    </select>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>Estado:</label>
                         <select v-model="patrocinioForm.estado" required>
@@ -95,28 +98,31 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Descripción:</label>
-                        <textarea v-model="patrocinioForm.descripcion" rows="3" required></textarea>
+                        <label>Fecha:</label>
+                        <input type="date" v-model="patrocinioForm.fecha" required />
                     </div>
-                    <div class="modal-actions">
-                        <button type="button" @click="cerrarModal" class="btn-cancelar">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="btn-guardar">Guardar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                </div>
+                <div class="form-group">
+                    <label>Descripción:</label>
+                    <textarea v-model="patrocinioForm.descripcion" rows="3" required></textarea>
+                </div>
+            </template>
+        </Modal>
     </div>
 </template>
 
 <script>
 import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import axios from "@/config/axios";
+import Swal from "sweetalert2";
+import Modal from "@/components/Modal.vue";
 
 export default {
     name: "PatrociniosView",
+    components: { Modal },
     setup() {
+        const router = useRouter();
         const patrocinios = ref([]);
         const estudiantes = ref([]);
         const patrocinadores = ref([]);
@@ -178,6 +184,7 @@ export default {
                 patrocinadores.value = patrocinadoresRes.data;
             } catch (error) {
                 console.error("Error cargando datos:", error);
+                Swal.fire("Error", "No se pudieron cargar los datos", "error");
             }
         };
 
@@ -207,30 +214,45 @@ export default {
                         `/patrocinios/${patrocinioForm.value.id}`,
                         patrocinioForm.value
                     );
-                    alert("Patrocinio actualizado correctamente");
+                    Swal.fire("Éxito", "Patrocinio actualizado correctamente", "success");
                 } else {
                     await axios.post("/patrocinios", patrocinioForm.value);
-                    alert("Patrocinio creado correctamente");
+                    Swal.fire("Éxito", "Patrocinio creado correctamente", "success");
                 }
                 cerrarModal();
                 cargarDatos();
             } catch (error) {
                 console.error("Error guardando patrocinio:", error);
-                alert("Error al guardar el patrocinio");
+                Swal.fire("Error", "Error al guardar el patrocinio", "error");
             }
         };
 
         const eliminarPatrocinio = async (id) => {
-            if (confirm("¿Estás seguro de eliminar este patrocinio?")) {
+            const result = await Swal.fire({
+                title: "¿Estás seguro?",
+                text: "No podrás revertir esto",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar",
+            });
+
+            if (result.isConfirmed) {
                 try {
                     await axios.delete(`/patrocinios/${id}`);
-                    alert("Patrocinio eliminado correctamente");
+                    Swal.fire("Eliminado", "Patrocinio eliminado correctamente", "success");
                     cargarDatos();
                 } catch (error) {
                     console.error("Error eliminando patrocinio:", error);
-                    alert("Error al eliminar el patrocinio");
+                    Swal.fire("Error", "Error al eliminar el patrocinio", "error");
                 }
             }
+        };
+
+        const verDetalle = (id) => {
+            router.push(`/patrocinios/${id}`);
         };
 
         const cerrarModal = () => {
@@ -258,6 +280,7 @@ export default {
             editarPatrocinio,
             guardarPatrocinio,
             eliminarPatrocinio,
+            verDetalle,
             cerrarModal,
         };
     },
@@ -286,6 +309,11 @@ export default {
     padding: 0.5rem 1rem;
     border-radius: 5px;
     cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-agregar:hover {
+    background: #218838;
 }
 
 .filtros {
@@ -328,12 +356,18 @@ th {
     gap: 0.5rem;
 }
 
+.btn-ver,
 .btn-editar,
 .btn-eliminar {
     padding: 0.25rem 0.5rem;
     border: none;
     border-radius: 3px;
     cursor: pointer;
+}
+
+.btn-ver {
+    background: #17a2b8;
+    color: white;
 }
 
 .btn-editar {
@@ -367,70 +401,10 @@ th {
     padding: 2rem;
 }
 
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 500px;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
+/* Estilos para el formulario dentro del modal */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
-    margin-top: 1.5rem;
-}
-
-.btn-cancelar {
-    background: #6c757d;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.btn-guardar {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #555;
-    font-weight: 500;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
 }
 </style>

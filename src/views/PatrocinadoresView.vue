@@ -76,21 +76,19 @@
             </table>
         </div>
 
-        <!-- Modal para crear/editar -->
-        <div v-if="mostrarModal" class="modal" @click.self="cerrarModal">
-            <div class="modal-content">
-                <h2>
-                    {{ modoEdicion ? "Editar Patrocinador" : "Nuevo Patrocinador" }}
-                </h2>
-                <form @submit.prevent="guardarPatrocinador">
-                    <div class="form-group">
-                        <label>Nombre Empresa:</label>
-                        <input type="text" v-model="patrocinadorForm.nombre_empresa" required />
-                    </div>
-                    <div class="form-group">
-                        <label>Nombre Contacto:</label>
-                        <input type="text" v-model="patrocinadorForm.nombre_contacto" required />
-                    </div>
+        <!-- Modal reutilizable para crear/editar patrocinador -->
+        <Modal :visible="mostrarModal" :title="modoEdicion ? 'Editar Patrocinador' : 'Nuevo Patrocinador'"
+            @close="cerrarModal" @save="guardarPatrocinador">
+            <template #form-fields>
+                <div class="form-group">
+                    <label>Nombre Empresa:</label>
+                    <input type="text" v-model="patrocinadorForm.nombre_empresa" required />
+                </div>
+                <div class="form-group">
+                    <label>Nombre Contacto:</label>
+                    <input type="text" v-model="patrocinadorForm.nombre_contacto" required />
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>Email:</label>
                         <input type="email" v-model="patrocinadorForm.correo" required />
@@ -99,13 +97,11 @@
                         <label>WhatsApp:</label>
                         <input type="text" v-model="patrocinadorForm.whatsapp" placeholder="+1234567890" required />
                     </div>
+                </div>
+                <div class="form-row">
                     <div class="form-group">
                         <label>País:</label>
                         <input type="text" v-model="patrocinadorForm.pais" required />
-                    </div>
-                    <div class="form-group">
-                        <label>Descripción Patrocinio:</label>
-                        <textarea v-model="patrocinadorForm.descripcion_patrocinio" rows="3" required></textarea>
                     </div>
                     <div class="form-group">
                         <label>Estado:</label>
@@ -115,15 +111,13 @@
                             <option value="CONCLUIDO">Concluido</option>
                         </select>
                     </div>
-                    <div class="modal-actions">
-                        <button type="button" @click="cerrarModal" class="btn-cancelar">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="btn-guardar">Guardar</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+                </div>
+                <div class="form-group">
+                    <label>Descripción Patrocinio:</label>
+                    <textarea v-model="patrocinadorForm.descripcion_patrocinio" rows="3" required></textarea>
+                </div>
+            </template>
+        </Modal>
     </div>
 </template>
 
@@ -131,9 +125,12 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "@/config/axios";
+import Swal from "sweetalert2";
+import Modal from "@/components/Modal.vue";
 
 export default {
     name: "PatrocinadoresView",
+    components: { Modal },
     setup() {
         const router = useRouter();
         const patrocinadores = ref([]);
@@ -187,6 +184,7 @@ export default {
                 patrocinadores.value = response.data;
             } catch (error) {
                 console.error("Error cargando patrocinadores:", error);
+                Swal.fire("Error", "No se pudieron cargar los patrocinadores", "error");
             }
         };
 
@@ -218,28 +216,39 @@ export default {
                         `/patrocinadores/${patrocinadorForm.value.id}`,
                         patrocinadorForm.value
                     );
-                    alert("Patrocinador actualizado correctamente");
+                    Swal.fire("Éxito", "Patrocinador actualizado correctamente", "success");
                 } else {
                     await axios.post("/patrocinadores", patrocinadorForm.value);
-                    alert("Patrocinador creado correctamente");
+                    Swal.fire("Éxito", "Patrocinador creado correctamente", "success");
                 }
                 cerrarModal();
                 cargarPatrocinadores();
             } catch (error) {
                 console.error("Error guardando patrocinador:", error);
-                alert("Error al guardar el patrocinador");
+                Swal.fire("Error", "Error al guardar el patrocinador", "error");
             }
         };
 
         const eliminarPatrocinador = async (id, nombre) => {
-            if (confirm(`¿Estás seguro de eliminar a ${nombre}?`)) {
+            const result = await Swal.fire({
+                title: "¿Estás seguro?",
+                html: `Vas a eliminar a <strong>${nombre}</strong>`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                cancelButtonColor: "#3085d6",
+                confirmButtonText: "Sí, eliminar",
+                cancelButtonText: "Cancelar",
+            });
+
+            if (result.isConfirmed) {
                 try {
                     await axios.delete(`/patrocinadores/${id}`);
-                    alert("Patrocinador eliminado correctamente");
+                    Swal.fire("Eliminado", "Patrocinador eliminado correctamente", "success");
                     cargarPatrocinadores();
                 } catch (error) {
                     console.error("Error eliminando patrocinador:", error);
-                    alert("Error al eliminar el patrocinador");
+                    Swal.fire("Error", "Error al eliminar el patrocinador", "error");
                 }
             }
         };
@@ -299,6 +308,11 @@ export default {
     padding: 0.5rem 1rem;
     border-radius: 5px;
     cursor: pointer;
+    transition: background 0.3s;
+}
+
+.btn-agregar:hover {
+    background: #218838;
 }
 
 .filtros {
@@ -397,77 +411,10 @@ th {
     padding: 2rem;
 }
 
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: white;
-    padding: 2rem;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-}
-
-.modal-actions {
-    display: flex;
-    justify-content: flex-end;
+/* Estilos para el formulario dentro del modal */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 1rem;
-    margin-top: 1.5rem;
-}
-
-.btn-cancelar {
-    background: #6c757d;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.btn-guardar {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    color: #555;
-    font-weight: 500;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
-}
-
-.form-group textarea {
-    resize: vertical;
-    font-family: inherit;
 }
 </style>

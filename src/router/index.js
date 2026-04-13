@@ -52,6 +52,12 @@ const routes = [
     component: () => import("../views/PatrociniosView.vue"),
     meta: { requiresAuth: true },
   },
+  {
+    path: "/patrocinios/:id", // ← Nueva ruta de detalle
+    name: "patrocinio-detalle",
+    component: () => import("../views/PatrocinioDetalleView.vue"),
+    meta: { requiresAuth: true },
+  },
 ];
 
 const router = createRouter({
