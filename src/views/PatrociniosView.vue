@@ -100,39 +100,50 @@
             <template #form-fields>
                 <div class="form-group">
                     <label>Patrocinador:</label>
-                    <select v-model="patrocinioForm.patrocinadorId" required>
+                    <select v-model="patrocinioForm.patrocinadorId" @blur="validarCampo('patrocinadorId')"
+                        :class="{ 'error-input': errores.patrocinadorId }" required>
                         <option value="">Seleccione un patrocinador</option>
                         <option v-for="p in patrocinadores" :key="p.id" :value="p.id">
                             {{ p.nombre_empresa }}
                         </option>
                     </select>
+                    <span v-if="errores.patrocinadorId" class="error-message-campo">{{ errores.patrocinadorId }}</span>
                 </div>
                 <div class="form-group">
                     <label>Estudiante:</label>
-                    <select v-model="patrocinioForm.estudianteId" required>
+                    <select v-model="patrocinioForm.estudianteId" @blur="validarCampo('estudianteId')"
+                        :class="{ 'error-input': errores.estudianteId }" required>
                         <option value="">Seleccione un estudiante</option>
                         <option v-for="e in estudiantes" :key="e.id" :value="e.id">
                             {{ e.nombre }}
                         </option>
                     </select>
+                    <span v-if="errores.estudianteId" class="error-message-campo">{{ errores.estudianteId }}</span>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Estado:</label>
-                        <select v-model="patrocinioForm.estado" required>
+                        <select v-model="patrocinioForm.estado" @blur="validarCampo('estado')"
+                            :class="{ 'error-input': errores.estado }" required>
                             <option value="ACTIVO">Activo</option>
                             <option value="INACTIVO">Inactivo</option>
                             <option value="CONCLUIDO">Concluido</option>
                         </select>
+                        <span v-if="errores.estado" class="error-message-campo">{{ errores.estado }}</span>
                     </div>
                     <div class="form-group">
                         <label>Fecha:</label>
-                        <input type="date" v-model="patrocinioForm.fecha" required />
+                        <input type="date" v-model="patrocinioForm.fecha" @blur="validarCampo('fecha')"
+                            :class="{ 'error-input': errores.fecha }" required />
+                        <span v-if="errores.fecha" class="error-message-campo">{{ errores.fecha }}</span>
                     </div>
                 </div>
                 <div class="form-group">
                     <label>Descripción:</label>
-                    <textarea v-model="patrocinioForm.descripcion" rows="3" required></textarea>
+                    <textarea v-model="patrocinioForm.descripcion" @blur="validarCampo('descripcion')"
+                        :class="{ 'error-input': errores.descripcion }" rows="3" placeholder="Mínimo 10 caracteres"
+                        required></textarea>
+                    <span v-if="errores.descripcion" class="error-message-campo">{{ errores.descripcion }}</span>
                 </div>
             </template>
         </Modal>
@@ -165,6 +176,13 @@ export default {
             estado: "ACTIVO",
             descripcion: "",
             fecha: new Date().toISOString().split("T")[0],
+        });
+        const errores = ref({
+            patrocinadorId: "",
+            estudianteId: "",
+            estado: "",
+            descripcion: "",
+            fecha: ""
         });
 
         const patrociniosFiltrados = computed(() => {
@@ -226,22 +244,78 @@ export default {
                 descripcion: "",
                 fecha: new Date().toISOString().split("T")[0],
             };
+            errores.value = { patrocinadorId: "", estudianteId: "", estado: "", descripcion: "", fecha: "" };
             mostrarModal.value = true;
         };
 
         const editarPatrocinio = (patrocinio) => {
             modoEdicion.value = true;
             patrocinioForm.value = { ...patrocinio };
+            errores.value = { patrocinadorId: "", estudianteId: "", estado: "", descripcion: "", fecha: "" };
             mostrarModal.value = true;
         };
 
+        // ---------- Funciones de validación ----------
+        const validarFechaPatrocinio = (fecha) => {
+            if (!fecha) return 'La fecha es obligatoria';
+            const fechaObj = new Date(fecha);
+            const hoy = new Date();
+            const unAnioAtras = new Date();
+            unAnioAtras.setFullYear(hoy.getFullYear() - 1);
+            const dentro10Dias = new Date();
+            dentro10Dias.setDate(hoy.getDate() + 10);
+
+            if (fechaObj < unAnioAtras) return 'La fecha no puede ser anterior a un año';
+            if (fechaObj > dentro10Dias) return 'La fecha no puede ser más de 10 días en el futuro';
+            return '';
+        };
+
+        const validarDescripcion = (descripcion) => {
+            if (!descripcion) return 'La descripción es obligatoria';
+            if (descripcion.length < 10) return 'La descripción debe tener al menos 10 caracteres';
+            if (descripcion.length > 500) return 'La descripción no puede superar los 500 caracteres';
+            return '';
+        };
+
+        const validarCampo = (campo) => {
+            switch (campo) {
+                case 'patrocinadorId':
+                    errores.value.patrocinadorId = !patrocinioForm.value.patrocinadorId ? 'Debe seleccionar un patrocinador' : '';
+                    break;
+                case 'estudianteId':
+                    errores.value.estudianteId = !patrocinioForm.value.estudianteId ? 'Debe seleccionar un estudiante' : '';
+                    break;
+                case 'estado':
+                    // El select tiene opciones fijas, validación mínima
+                    errores.value.estado = !patrocinioForm.value.estado ? 'El estado es obligatorio' : '';
+                    break;
+                case 'descripcion':
+                    errores.value.descripcion = validarDescripcion(patrocinioForm.value.descripcion);
+                    break;
+                case 'fecha':
+                    errores.value.fecha = validarFechaPatrocinio(patrocinioForm.value.fecha);
+                    break;
+            }
+        };
+
+        const validarFormulario = () => {
+            validarCampo('patrocinadorId');
+            validarCampo('estudianteId');
+            validarCampo('estado');
+            validarCampo('descripcion');
+            validarCampo('fecha');
+            return !Object.values(errores.value).some(error => error !== '');
+        };
+        // -----------------------------------------
+
         const guardarPatrocinio = async () => {
+            if (!validarFormulario()) {
+                Swal.fire('Error de validación', 'Corrija los errores en el formulario', 'error');
+                return;
+            }
             try {
                 if (modoEdicion.value) {
-                    await axios.put(
-                        `/patrocinios/${patrocinioForm.value.id}`,
-                        patrocinioForm.value
-                    );
+                    await axios.put(`/patrocinios/${patrocinioForm.value.id}`, patrocinioForm.value);
                     Swal.fire("Éxito", "Patrocinio actualizado correctamente", "success");
                 } else {
                     await axios.post("/patrocinios", patrocinioForm.value);
@@ -301,6 +375,7 @@ export default {
             mostrarModal,
             modoEdicion,
             patrocinioForm,
+            errores,
             formatDate,
             getPatrocinadorNombre,
             getEstudianteNombre,
@@ -310,6 +385,7 @@ export default {
             eliminarPatrocinio,
             verDetalle,
             cerrarModal,
+            validarCampo,
         };
     },
 };
@@ -502,6 +578,19 @@ export default {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
+}
+
+/* Estilos para errores */
+.error-input {
+    border-color: #dc3545 !important;
+    background-color: #fff8f8 !important;
+}
+
+.error-message-campo {
+    display: block;
+    color: #dc3545;
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
 }
 
 /* ============================================ */

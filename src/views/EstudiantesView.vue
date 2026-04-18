@@ -88,24 +88,39 @@
             <template #form-fields>
                 <div class="form-group">
                     <label>Nombre:</label>
-                    <input type="text" v-model="estudianteForm.nombre" required />
+                    <input type="text" v-model="estudianteForm.nombre" @blur="validarCampo('nombre')"
+                        :class="{ 'error-input': errores.nombre }" placeholder="Mínimo 3 caracteres, solo letras"
+                        required />
+                    <span v-if="errores.nombre" class="error-message-campo">{{ errores.nombre }}</span>
                 </div>
                 <div class="form-group">
                     <label>Email:</label>
-                    <input type="email" v-model="estudianteForm.correo" required />
+                    <input type="email" v-model="estudianteForm.correo" @blur="validarCampo('correo')"
+                        :class="{ 'error-input': errores.correo }" placeholder="ejemplo@correo.com" required />
+                    <span v-if="errores.correo" class="error-message-campo">{{ errores.correo }}</span>
                 </div>
                 <div class="form-group">
                     <label>WhatsApp:</label>
-                    <input type="text" v-model="estudianteForm.whatsapp" placeholder="+1234567890" required />
+                    <input type="tel" v-model="estudianteForm.whatsapp" @blur="validarCampo('whatsapp')"
+                        :class="{ 'error-input': errores.whatsapp }" placeholder="8 a 15 dígitos, solo números"
+                        required />
+                    <span v-if="errores.whatsapp" class="error-message-campo">{{ errores.whatsapp }}</span>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>País:</label>
-                        <input type="text" v-model="estudianteForm.pais" required />
+                        <input type="text" v-model="estudianteForm.pais" @blur="validarCampo('pais')"
+                            :class="{ 'error-input': errores.pais }" placeholder="Mínimo 3 caracteres, solo letras"
+                            required />
+                        <span v-if="errores.pais" class="error-message-campo">{{ errores.pais }}</span>
                     </div>
                     <div class="form-group">
                         <label>Fecha Nacimiento:</label>
-                        <input type="date" v-model="estudianteForm.fecha_nacimiento" required />
+                        <input type="date" v-model="estudianteForm.fecha_nacimiento"
+                            @blur="validarCampo('fecha_nacimiento')"
+                            :class="{ 'error-input': errores.fecha_nacimiento }" required />
+                        <span v-if="errores.fecha_nacimiento" class="error-message-campo">{{ errores.fecha_nacimiento
+                        }}</span>
                     </div>
                 </div>
             </template>
@@ -139,106 +154,176 @@ export default {
             fecha_nacimiento: "",
         });
 
-        const paises = computed(() => {
-            return [...new Set(estudiantes.value.map((e) => e.pais))];
+        // ✅ Declaración de errores
+        const errores = ref({
+            nombre: "",
+            correo: "",
+            whatsapp: "",
+            pais: "",
+            fecha_nacimiento: ""
         });
+
+        const paises = computed(() => [...new Set(estudiantes.value.map(e => e.pais))]);
 
         const estudiantesFiltrados = computed(() => {
             let filtered = estudiantes.value;
-
             if (searchTerm.value) {
                 const term = searchTerm.value.toLowerCase();
-                filtered = filtered.filter(
-                    (e) =>
-                        e.nombre.toLowerCase().includes(term) ||
-                        e.correo.toLowerCase().includes(term)
+                filtered = filtered.filter(e =>
+                    e.nombre.toLowerCase().includes(term) ||
+                    e.correo.toLowerCase().includes(term)
                 );
             }
-
-            if (filtroPais.value) {
-                filtered = filtered.filter((e) => e.pais === filtroPais.value);
-            }
-
+            if (filtroPais.value) filtered = filtered.filter(e => e.pais === filtroPais.value);
             return filtered;
         });
+
+        // ---------- Funciones de validación ----------
+        const validarNombre = (nombre) => {
+            if (!nombre) return 'El nombre es obligatorio';
+            if (nombre.length < 3) return 'El nombre debe tener al menos 3 caracteres';
+            if (nombre.length > 100) return 'El nombre no puede superar los 100 caracteres';
+            if (!/^[a-zA-ZáéíóúñÑüÜ\s]+$/.test(nombre)) return 'Solo letras y espacios';
+            return '';
+        };
+
+        const validarPais = (pais) => {
+            if (!pais) return 'El país es obligatorio';
+            if (pais.length < 3) return 'El país debe tener al menos 3 caracteres';
+            if (pais.length > 100) return 'El país no puede superar los 100 caracteres';
+            if (!/^[a-zA-ZáéíóúñÑüÜ\s]+$/.test(pais)) return 'Solo letras y espacios';
+            return '';
+        };
+
+        const validarEmail = (email) => {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email) return 'El email es obligatorio';
+            if (!re.test(email)) return 'Formato de email inválido';
+            return '';
+        };
+
+        const validarWhatsApp = (whatsapp) => {
+            if (!whatsapp) return 'El WhatsApp es obligatorio';
+            if (!/^\d+$/.test(whatsapp)) return 'Solo números';
+            if (whatsapp.length < 8) return 'Debe tener al menos 8 dígitos';
+            if (whatsapp.length > 15) return 'Máximo 15 dígitos';
+            return '';
+        };
+
+        const validarFechaNacimiento = (fecha) => {
+            if (!fecha) return 'La fecha de nacimiento es obligatoria';
+            const hoy = new Date();
+            const fechaNac = new Date(fecha);
+            if (isNaN(fechaNac.getTime())) return 'Fecha inválida';
+            let edad = hoy.getFullYear() - fechaNac.getFullYear();
+            const mes = hoy.getMonth() - fechaNac.getMonth();
+            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) edad--;
+            if (edad < 12) return 'Debe tener al menos 12 años';
+            if (fechaNac > hoy) return 'La fecha no puede ser futura';
+            return '';
+        };
+
+        const validarCampo = (campo) => {
+            switch (campo) {
+                case 'nombre': errores.value.nombre = validarNombre(estudianteForm.value.nombre); break;
+                case 'correo': errores.value.correo = validarEmail(estudianteForm.value.correo); break;
+                case 'whatsapp': errores.value.whatsapp = validarWhatsApp(estudianteForm.value.whatsapp); break;
+                case 'pais': errores.value.pais = validarPais(estudianteForm.value.pais); break;
+                case 'fecha_nacimiento': errores.value.fecha_nacimiento = validarFechaNacimiento(estudianteForm.value.fecha_nacimiento); break;
+            }
+        };
+
+        const validarFormulario = () => {
+            validarCampo('nombre');
+            validarCampo('correo');
+            validarCampo('whatsapp');
+            validarCampo('pais');
+            validarCampo('fecha_nacimiento');
+            return !Object.values(errores.value).some(error => error !== '');
+        };
+        // -----------------------------------------
 
         const cargarEstudiantes = async () => {
             try {
                 const response = await axios.get('/estudiantes');
                 estudiantes.value = response.data;
             } catch (error) {
-                console.error("Error cargando estudiantes:", error);
                 Swal.fire("Error", "No se pudieron cargar los estudiantes", "error");
             }
         };
 
         const abrirModalCrear = () => {
             modoEdicion.value = false;
-            estudianteForm.value = {
-                id: null,
-                nombre: "",
-                correo: "",
-                whatsapp: "",
-                pais: "",
-                fecha_nacimiento: "",
-            };
+            estudianteForm.value = { id: null, nombre: "", correo: "", whatsapp: "", pais: "", fecha_nacimiento: "" };
+            // Limpiar errores
+            errores.value = { nombre: "", correo: "", whatsapp: "", pais: "", fecha_nacimiento: "" };
             mostrarModal.value = true;
         };
 
         const editarEstudiante = (estudiante) => {
             modoEdicion.value = true;
             estudianteForm.value = { ...estudiante };
+            errores.value = { nombre: "", correo: "", whatsapp: "", pais: "", fecha_nacimiento: "" };
             mostrarModal.value = true;
         };
 
         const guardarEstudiante = async () => {
+            if (!validarFormulario()) {
+                Swal.fire('Error de validación', 'Corrija los errores en el formulario', 'error');
+                return;
+            }
             try {
                 if (modoEdicion.value) {
-                    await axios.put(`/estudiantes/${estudianteForm.value.id}`, estudianteForm.value)
-                    Swal.fire("Éxito", "Estudiante actualizado", "success");
+                    await axios.put(`/estudiantes/${estudianteForm.value.id}`, estudianteForm.value);
+                    Swal.fire('Éxito', 'Estudiante actualizado', 'success');
                 } else {
-                    await axios.post('/estudiantes', estudianteForm.value)
-                    Swal.fire("Éxito", "Estudiante creado", "success");
+                    await axios.post('/estudiantes', estudianteForm.value);
+                    Swal.fire('Éxito', 'Estudiante creado', 'success');
                 }
                 cerrarModal();
                 cargarEstudiantes();
             } catch (error) {
-                console.error("Error guardando estudiante:", error);
-                Swal.fire("Error", "Error al guardar el estudiante", "error");
+                Swal.fire('Error', 'Error al guardar el estudiante', 'error');
             }
         };
 
         const eliminarEstudiante = async (id) => {
+            // Verificar patrocinios asociados
+            try {
+                const patrociniosResponse = await axios.get(`/patrocinios?estudianteId=${id}`);
+                if (patrociniosResponse.data.length > 0) {
+                    Swal.fire('No se puede eliminar', 'El estudiante tiene patrocinios asociados', 'warning');
+                    return;
+                }
+            } catch (error) {
+                Swal.fire('Error', 'No se pudo verificar los patrocinios', 'error');
+                return;
+            }
+
             const result = await Swal.fire({
-                title: "¿Estás seguro?",
-                text: "No podrás revertir esto",
-                icon: "warning",
+                title: '¿Estás seguro?',
+                text: 'No podrás revertir esto',
+                icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: "#d33",
-                cancelButtonColor: "#3085d6",
-                confirmButtonText: "Sí, eliminar",
-                cancelButtonText: "Cancelar",
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
             });
 
             if (result.isConfirmed) {
                 try {
                     await axios.delete(`/estudiantes/${id}`);
-                    Swal.fire("Eliminado", "Estudiante eliminado", "success");
+                    Swal.fire('Eliminado', 'Estudiante eliminado', 'success');
                     cargarEstudiantes();
                 } catch (error) {
-                    console.error("Error eliminando estudiante:", error);
-                    Swal.fire("Error", "Error al eliminar el estudiante", "error");
+                    Swal.fire('Error', 'Error al eliminar el estudiante', 'error');
                 }
             }
         };
 
-        const verDetalle = (id) => {
-            router.push(`/estudiantes/${id}`);
-        };
-
-        const cerrarModal = () => {
-            mostrarModal.value = false;
-        };
+        const verDetalle = (id) => router.push(`/estudiantes/${id}`);
+        const cerrarModal = () => { mostrarModal.value = false; };
 
         onMounted(() => {
             cargarEstudiantes();
@@ -253,14 +338,16 @@ export default {
             mostrarModal,
             modoEdicion,
             estudianteForm,
+            errores,
             abrirModalCrear,
             editarEstudiante,
             guardarEstudiante,
             eliminarEstudiante,
             verDetalle,
             cerrarModal,
+            validarCampo
         };
-    },
+    }
 };
 </script>
 
@@ -522,5 +609,18 @@ export default {
     select {
         font-size: 16px !important;
     }
+}
+
+/* Estilos para errores */
+.error-input {
+    border-color: #dc3545 !important;
+    background-color: #fff8f8 !important;
+}
+
+.error-message-campo {
+    display: block;
+    color: #dc3545;
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
 }
 </style>

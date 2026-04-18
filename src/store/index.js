@@ -35,58 +35,36 @@ export default createStore({
   actions: {
     async login({ commit }, credentials) {
       try {
-        // JSON Server Auth espera email y password
-        const response = await axios.post("/login", {
-          email: credentials.email,
-          password: credentials.password,
-        });
-
-        console.log("Respuesta del login:", response.data);
-
-        // La respuesta puede venir con access_token o accessToken
-        const token = response.data.access_token || response.data.accessToken;
+        const response = await axios.post("/login", credentials);
+        const token = response.data.accessToken || response.data.access_token;
         const user = response.data.user;
-
         if (token) {
+          //const { access_token, user } = response.data;
           commit("SET_TOKEN", token);
-          commit("SET_USER", user || { email: credentials.email });
+          commit("SET_USER", user);
           return { success: true };
         } else {
           return { success: false, error: "No se recibió token" };
         }
       } catch (error) {
-        console.error("Login error:", error.response?.data || error.message);
-        return {
-          success: false,
-          error: error.response?.data?.message || "Credenciales incorrectas",
-        };
+        return { success: false, error: error.response?.data || error.message };
       }
     },
     async register({ commit }, userData) {
       try {
-        const response = await axios.post("/register", {
-          email: userData.email,
-          password: userData.password,
-        });
-
-        console.log("Respuesta del registro:", response.data);
-
-        const token = response.data.access_token || response.data.accessToken;
+        const response = await axios.post("/register", userData);
+        const token = response.data.accessToken || response.data.access_token;
         const user = response.data.user;
-
         if (token) {
+          // const { access_token, user } = response.data;
           commit("SET_TOKEN", token);
-          commit("SET_USER", user || { email: userData.email });
+          commit("SET_USER", user);
           return { success: true };
         } else {
           return { success: false, error: "No se recibió token" };
         }
       } catch (error) {
-        console.error("Register error:", error.response?.data || error.message);
-        return {
-          success: false,
-          error: error.response?.data?.message || "Error en el registro",
-        };
+        return { success: false, error: error.response?.data || error.message };
       }
     },
     logout({ commit }) {
@@ -94,7 +72,7 @@ export default createStore({
     },
   },
   getters: {
-    isAuthenticated: (state) => state.isAuthenticated,
+    isAuthenticated: (state) => state.isAuthenticated, // ← Esto debe ser una función
     currentUser: (state) => state.user,
     authToken: (state) => state.token,
   },
