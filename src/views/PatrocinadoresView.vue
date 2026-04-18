@@ -108,26 +108,41 @@
             <template #form-fields>
                 <div class="form-group">
                     <label>Nombre Empresa:</label>
-                    <input type="text" v-model="patrocinadorForm.nombre_empresa" required />
+                    <input type="text" v-model="patrocinadorForm.nombre_empresa" @blur="validarCampo('nombre_empresa')"
+                        :class="{ 'error-input': errores.nombre_empresa }"
+                        placeholder="Mínimo 3 caracteres, solo letras" required />
+                    <span v-if="errores.nombre_empresa" class="error-message-campo">{{ errores.nombre_empresa }}</span>
                 </div>
                 <div class="form-group">
                     <label>Nombre Contacto:</label>
-                    <input type="text" v-model="patrocinadorForm.nombre_contacto" required />
+                    <input type="text" v-model="patrocinadorForm.nombre_contacto"
+                        @blur="validarCampo('nombre_contacto')" :class="{ 'error-input': errores.nombre_contacto }"
+                        placeholder="Mínimo 3 caracteres, solo letras" required />
+                    <span v-if="errores.nombre_contacto" class="error-message-campo">{{ errores.nombre_contacto
+                        }}</span>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>Email:</label>
-                        <input type="email" v-model="patrocinadorForm.correo" required />
+                        <input type="email" v-model="patrocinadorForm.correo" @blur="validarCampo('correo')"
+                            :class="{ 'error-input': errores.correo }" placeholder="ejemplo@correo.com" required />
+                        <span v-if="errores.correo" class="error-message-campo">{{ errores.correo }}</span>
                     </div>
                     <div class="form-group">
                         <label>WhatsApp:</label>
-                        <input type="text" v-model="patrocinadorForm.whatsapp" placeholder="+1234567890" required />
+                        <input type="tel" v-model="patrocinadorForm.whatsapp" @blur="validarCampo('whatsapp')"
+                            :class="{ 'error-input': errores.whatsapp }" placeholder="8 a 15 dígitos, solo números"
+                            required />
+                        <span v-if="errores.whatsapp" class="error-message-campo">{{ errores.whatsapp }}</span>
                     </div>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
                         <label>País:</label>
-                        <input type="text" v-model="patrocinadorForm.pais" required />
+                        <input type="text" v-model="patrocinadorForm.pais" @blur="validarCampo('pais')"
+                            :class="{ 'error-input': errores.pais }" placeholder="Mínimo 3 caracteres, solo letras"
+                            required />
+                        <span v-if="errores.pais" class="error-message-campo">{{ errores.pais }}</span>
                     </div>
                     <div class="form-group">
                         <label>Estado:</label>
@@ -140,7 +155,13 @@
                 </div>
                 <div class="form-group">
                     <label>Descripción Patrocinio:</label>
-                    <textarea v-model="patrocinadorForm.descripcion_patrocinio" rows="3" required></textarea>
+                    <textarea v-model="patrocinadorForm.descripcion_patrocinio"
+                        @blur="validarCampo('descripcion_patrocinio')"
+                        :class="{ 'error-input': errores.descripcion_patrocinio }" rows="3"
+                        placeholder="Mínimo 10 caracteres" required></textarea>
+                    <span v-if="errores.descripcion_patrocinio" class="error-message-campo">
+                        {{ errores.descripcion_patrocinio }}
+                    </span>
                 </div>
             </template>
         </Modal>
@@ -175,6 +196,14 @@ export default {
             descripcion_patrocinio: "",
             estado: "ACTIVO",
         });
+        const errores = ref({
+            nombre_empresa: "",
+            nombre_contacto: "",
+            correo: "",
+            whatsapp: "",
+            pais: "",
+            descripcion_patrocinio: ""
+        });
 
         const paises = computed(() => {
             return [...new Set(patrocinadores.value.map((p) => p.pais))];
@@ -204,6 +233,70 @@ export default {
             return filtered;
         });
 
+        // ---------- Funciones de validación ----------
+        const validarCampoTexto = (valor, campo) => {
+            if (!valor) return `El ${campo} es obligatorio`;
+            if (valor.length < 3) return `El ${campo} debe tener al menos 3 caracteres`;
+            if (valor.length > 100) return `El ${campo} no puede superar los 100 caracteres`;
+            if (!/^[a-zA-ZáéíóúñÑüÜ\s]+$/.test(valor)) return `El ${campo} solo puede contener letras y espacios`;
+            return '';
+        };
+
+        const validarEmail = (email) => {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email) return 'El email es obligatorio';
+            if (!re.test(email)) return 'Formato de email inválido';
+            return '';
+        };
+
+        const validarWhatsApp = (whatsapp) => {
+            if (!whatsapp) return 'El WhatsApp es obligatorio';
+            if (!/^\d+$/.test(whatsapp)) return 'Solo números';
+            if (whatsapp.length < 8) return 'Debe tener al menos 8 dígitos';
+            if (whatsapp.length > 15) return 'Máximo 15 dígitos';
+            return '';
+        };
+
+        const validarCampo = (campo) => {
+            switch (campo) {
+                case 'nombre_empresa':
+                    errores.value.nombre_empresa = validarCampoTexto(patrocinadorForm.value.nombre_empresa, 'nombre de empresa');
+                    break;
+                case 'nombre_contacto':
+                    errores.value.nombre_contacto = validarCampoTexto(patrocinadorForm.value.nombre_contacto, 'nombre de contacto');
+                    break;
+                case 'correo':
+                    errores.value.correo = validarEmail(patrocinadorForm.value.correo);
+                    break;
+                case 'whatsapp':
+                    errores.value.whatsapp = validarWhatsApp(patrocinadorForm.value.whatsapp);
+                    break;
+                case 'pais':
+                    errores.value.pais = validarCampoTexto(patrocinadorForm.value.pais, 'país');
+                    break;
+                case 'descripcion_patrocinio':
+                    if (!patrocinadorForm.value.descripcion_patrocinio) {
+                        errores.value.descripcion_patrocinio = 'La descripción es obligatoria';
+                    } else if (patrocinadorForm.value.descripcion_patrocinio.length < 10) {
+                        errores.value.descripcion_patrocinio = 'La descripción debe tener al menos 10 caracteres';
+                    } else {
+                        errores.value.descripcion_patrocinio = '';
+                    }
+                    break;
+            }
+        };
+
+        const validarFormulario = () => {
+            validarCampo('nombre_empresa');
+            validarCampo('nombre_contacto');
+            validarCampo('correo');
+            validarCampo('whatsapp');
+            validarCampo('pais');
+            validarCampo('descripcion_patrocinio');
+            return !Object.values(errores.value).some(error => error !== '');
+        };
+        // -----------------------------------------
+
         const cargarPatrocinadores = async () => {
             try {
                 const response = await axios.get("/patrocinadores");
@@ -226,22 +319,27 @@ export default {
                 descripcion_patrocinio: "",
                 estado: "ACTIVO",
             };
+            errores.value = {
+                nombre_empresa: "", nombre_contacto: "", correo: "",
+                whatsapp: "", pais: "", descripcion_patrocinio: ""
+            };
             mostrarModal.value = true;
         };
 
         const editarPatrocinador = (patrocinador) => {
             modoEdicion.value = true;
             patrocinadorForm.value = { ...patrocinador };
+            errores.value = { nombre_empresa: "", nombre_contacto: "", correo: "", whatsapp: "", pais: "", descripcion_patrocinio: "" };
             mostrarModal.value = true;
         };
-
         const guardarPatrocinador = async () => {
+            if (!validarFormulario()) {
+                Swal.fire('Error de validación', 'Corrija los errores en el formulario', 'error');
+                return;
+            }
             try {
                 if (modoEdicion.value) {
-                    await axios.put(
-                        `/patrocinadores/${patrocinadorForm.value.id}`,
-                        patrocinadorForm.value
-                    );
+                    await axios.put(`/patrocinadores/${patrocinadorForm.value.id}`, patrocinadorForm.value);
                     Swal.fire("Éxito", "Patrocinador actualizado correctamente", "success");
                 } else {
                     await axios.post("/patrocinadores", patrocinadorForm.value);
@@ -256,6 +354,19 @@ export default {
         };
 
         const eliminarPatrocinador = async (id, nombre) => {
+            // Verificar si el patrocinador tiene patrocinios asociados
+            try {
+                const patrociniosResponse = await axios.get(`/patrocinios?patrocinadorId=${id}`);
+                if (patrociniosResponse.data.length > 0) {
+                    Swal.fire('No se puede eliminar', 'El patrocinador tiene patrocinios asociados', 'warning');
+                    return;
+                }
+            } catch (error) {
+                console.error('Error verificando patrocinios:', error);
+                Swal.fire('Error', 'No se pudo verificar los patrocinios', 'error');
+                return;
+            }
+
             const result = await Swal.fire({
                 title: "¿Estás seguro?",
                 html: `Vas a eliminar a <strong>${nombre}</strong>`,
@@ -278,7 +389,6 @@ export default {
                 }
             }
         };
-
         const verDetalle = (id) => {
             router.push(`/patrocinadores/${id}`);
         };
@@ -301,12 +411,14 @@ export default {
             mostrarModal,
             modoEdicion,
             patrocinadorForm,
+            errores,
             abrirModalCrear,
             editarPatrocinador,
             guardarPatrocinador,
             eliminarPatrocinador,
             verDetalle,
             cerrarModal,
+            validarCampo,
         };
     },
 };
@@ -508,6 +620,19 @@ export default {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
+}
+
+/* Estilos para errores */
+.error-input {
+    border-color: #dc3545 !important;
+    background-color: #fff8f8 !important;
+}
+
+.error-message-campo {
+    display: block;
+    color: #dc3545;
+    font-size: 0.7rem;
+    margin-top: 0.25rem;
 }
 
 /* ============================================ */
