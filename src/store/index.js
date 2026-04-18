@@ -36,10 +36,16 @@ export default createStore({
     async login({ commit }, credentials) {
       try {
         const response = await axios.post("/login", credentials);
-        const { access_token, user } = response.data;
-        commit("SET_TOKEN", access_token);
-        commit("SET_USER", user);
-        return { success: true };
+        const token = response.data.accessToken || response.data.access_token;
+        const user = response.data.user;
+        if (token) {
+          //const { access_token, user } = response.data;
+          commit("SET_TOKEN", token);
+          commit("SET_USER", user);
+          return { success: true };
+        } else {
+          return { success: false, error: "No se recibió token" };
+        }
       } catch (error) {
         return { success: false, error: error.response?.data || error.message };
       }
@@ -47,10 +53,16 @@ export default createStore({
     async register({ commit }, userData) {
       try {
         const response = await axios.post("/register", userData);
-        const { access_token, user } = response.data;
-        commit("SET_TOKEN", access_token);
-        commit("SET_USER", user);
-        return { success: true };
+        const token = response.data.accessToken || response.data.access_token;
+        const user = response.data.user;
+        if (token) {
+          // const { access_token, user } = response.data;
+          commit("SET_TOKEN", token);
+          commit("SET_USER", user);
+          return { success: true };
+        } else {
+          return { success: false, error: "No se recibió token" };
+        }
       } catch (error) {
         return { success: false, error: error.response?.data || error.message };
       }

@@ -48,7 +48,7 @@ export default {
 
             try {
                 const result = await store.dispatch('login', credentials.value)
-
+                console.log('Resultado login:', result);
                 if (result.success) {
                     console.log('Login exitoso, redirigiendo...')
                     // Forzar redirección
