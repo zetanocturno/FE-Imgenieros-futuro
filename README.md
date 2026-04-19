@@ -98,6 +98,7 @@ cp .env.example .env
 npm run serve
 
 # Iniciar JSON Server (en otra terminal)
+cp db.json ../
 cd ..
 json-server-auth db.json --port 3000
 
